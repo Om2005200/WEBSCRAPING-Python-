@@ -30,7 +30,16 @@ print(json_data)
 
 def writing_the_data_to_json(path='nifty_50_raw_data.json'):                                                               # function to create convert the json response into a temporary json file
   with open(path,'w') as x:
-    l=json.dump(json_data,x,indent=4)                                           
+      if os.path.exists(path):
+          with open(path,'r') as f:
+              
+             l=json.dump(json_data,x,indent=4)   
+      else:
+          l=[]
+      l=json_data
+          with open(path,'w') as x:
+              json.dump(l,x,indent=4)
+              
     return l
       
 def converting_the_json_into_csv(path='nifty_50.csv'):                                                                       # function to convert the json response into csv
