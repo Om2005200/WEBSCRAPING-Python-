@@ -1,5 +1,5 @@
 import requests as rq                                                                                                  # impoorting the request with aliasing as rq
-import pamdas as pd                                                                                                    # importing the pnadas with aliasing as pd
+import pandas as pd                                                                                                    # importing the pnadas with aliasing as pd
 import csv                                                                                                             # python's own csv module
 import json                                                                                                            # java script oriented file that mainly recobverts the reponse into json 
 
@@ -22,16 +22,16 @@ main_headers = {                                                                
 
 session=rq.Session()                                                                                                       #creating a session for the get resquest
 response1=session.get(url1,headers=main_headers)
-print(response.status_code)                                                                                                # printing the status code this will give '200' for succesfull response else 404 or other HTTP Exceptions
+print(response1.status_code)                                                                                                # printing the status code this will give '200' for succesfull response else 404 or other HTTP Exceptions
 response2=session.get(url2,headers=main_headers)
-print(response.status_code)
-json_data=response.json()                                                                                                  # receiving the json response 
+print(response2.status_code)
+json_data=response2.json()                                                                                                  # receiving the json response 
 print(json_data)
 
 def writing_the_data_to_json(path='nifty_50_raw_data.json'):                                                               # function to create convert the json response into a temporary json file
   with open(path,'w') as x:
       if os.path.exists(path):
-          with open(path,'r') as f:
+          with open(path,'w') as f:
               
              l=json.dump(json_data,x,indent=4)   
       else:
@@ -60,13 +60,29 @@ def converting_the_json_into_csv(path='nifty_50.csv'):                          
       
   },inplace=True)
     
-  result=result[['DATE','INDEX','OPEN','HIGH','LOW','CLOSE','TURNOVER','VOLUME','RAW_TIME']]                                  #checking the column names and ordering them 
+  result=result[['DATE','INDEX','OPEN','HIGH','LOW','CLOSE','TURNOVER','VOLUME','RAW_TIME']]
+  
+  result['DATE']=pd.to_datetime(result['DATE'])
+  result=result.sort_values(by='DATE',ascending=True)
   if os.path.exists(path):
-      result.to_csv(path,mode='a',header=False,index=False)                                                                   # checking if the file exists or not if not the else statemnt will create the csv in overwrite mode else append the data
+    old_df = pd.read_csv(path)
+
+    old_df['DATE'] = pd.to_datetime(old_df['DATE'])
+
+   
+    combined = pd.concat([old_df, result])
+
+    combined = combined.drop_duplicates(subset='DATE')
+
+
+    combined = combined.sort_values(by='DATE', ascending=True)
+
+    combined.to_csv(path, index=False)
   else:
-      result.to_csv(path,mode='w',header=True,index=False)
+      result=result.sort_values(by='DATE',acending=True)
+      result.to_csv(path,index=False)
       
-  result.to_csv(path,index=False)
+      
 
 e=writing_the_data_to_json()                                                                                                  #calling the functions 
 g=converting_the_json_into_csv()
